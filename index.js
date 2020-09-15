@@ -1,4 +1,4 @@
-import { from, fromEvent, Observable, of, range, interval } from "rxjs";
+import { from, fromEvent, Observable, of, range, interval, empty } from "rxjs";
 import { ajax } from "rxjs/ajax";
 import {
   map,
@@ -23,6 +23,10 @@ import {
   mergeAll,
   mergeMap,
   switchMap,
+  concatMap,
+  delay,
+  exhaustMap,
+  catchError,
 } from "rxjs/operators";
 
 /*
@@ -278,8 +282,7 @@ const timer$ = interval(10000);
 // timer$.pipe(sample(click$)).subscribe(console.log);
 
 // auditTime Operator --------------------------------------------------
-
-click$.pipe(auditTime(4000)).subscribe(console.log);
+// click$.pipe(auditTime(4000)).subscribe(console.log);
 
 /**
  *
@@ -324,7 +327,7 @@ input$
       return ajax.getJSON(`https://api.github.com/users/${term}`);
     })
   )
-  .subscribe(console.log);
+  .subscribe();
 
 const interval$ = interval(1000);
 const mousedown$ = fromEvent(document, "mousedown");
@@ -332,7 +335,7 @@ const mouseup$ = fromEvent(document, "mouseup");
 
 mousedown$
   .pipe(mergeMap(() => interval$.pipe(takeUntil(mouseup$))))
-  .subscribe(console.log);
+  .subscribe();
 
 const coordinates$ = click$.pipe(
   map((event) => ({
@@ -347,7 +350,7 @@ const coordinatesWithSave$ = coordinates$.pipe(
   )
 );
 
-coordinatesWithSave$.subscribe(console.log);
+coordinatesWithSave$.subscribe();
 
 // switchMap Operator --------------------------------------------------
 
@@ -363,17 +366,76 @@ const BASE_URL = "https://api.openbrewerydb.org/breweries";
 
 const switchMapInput$ = fromEvent(switchMapInput, "keyup");
 
+// switchMapInput$
+//   .pipe(
+//     debounceTime(200),
+//     pluck("target", "value"),
+//     distinctUntilChanged(),
+//     switchMap((searchTerm) => {
+//       return ajax.getJSON(`${BASE_URL}?by_name=${searchTerm}`);
+//     })
+//   )
+//   .subscribe((response) => {
+//     typeaheadContainer.innerHTML = response.map((b) => b.name).join("<br>");
+//   });
+
+// concatMap Operator --------------------------------------------------
+
+// click$.pipe(concatMap(() => interval$.pipe(take(3))));
+
+const radioButtons = document.querySelectorAll(".radio-option");
+
+const answerChange$ = fromEvent(radioButtons, "click");
+
+const saveAnswer = (answer) => {
+  // simulate delayed request
+  return of(`Saved: ${answer}`).pipe(delay(1500));
+};
+
+answerChange$
+  .pipe(concatMap((event) => saveAnswer(event.target.value)))
+  .subscribe();
+
+// be careful if you have long running inner observables, as subsequent mapped
+// observables could back up or never execute
+
+// exhaustMap Operator --------------------------------------------------
+/* > good for login btns, if users keep clicking on the 'login' btn.
+   > ignores emitted values when there is an active inner observable.
+   > Use when quick, subsequent emissions can be ignored, like refresh 
+     button or login request
+   > Avoid if cancellation is important, or ignoring emissions from source 
+     would cause  undesired effects  
+*/
+
+const authUser = () => {
+  return ajax.post("https://reqres.in/api/log", {
+    email: "eve.holt@reqres.in",
+    password: "cityslicka",
+  });
+};
+
+const loginButton = document.getElementById("login");
+const login$ = fromEvent(loginButton, "click");
+
+login$.pipe(exhaustMap(() => authUser())).subscribe(console.log);
+
+// catchError Operator --------------------------------------------------
+
 switchMapInput$
   .pipe(
     debounceTime(200),
     pluck("target", "value"),
     distinctUntilChanged(),
     switchMap((searchTerm) => {
-      return ajax.getJSON(`${BASE_URL}?by_name=${searchTerm}`);
+      return ajax.getJSON(`${BASE_URL}?by_name=${searchTerm}`).pipe(
+        catchError((error) => {
+          // return of error
+          return empty();
+        })
+      );
     })
   )
   .subscribe((response) => {
     typeaheadContainer.innerHTML = response.map((b) => b.name).join("<br>");
   });
-
-// concatMap Operator --------------------------------------------------

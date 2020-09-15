@@ -75,3 +75,9 @@ body {
   width: 0;
   background-color: #ff16b7;
 }
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}

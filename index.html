@@ -13,15 +13,57 @@
     <div id="app">
       <div class="progress-bar"></div>
       <h1>Ultimate RxJS</h1>
+    </div>
+    <div class="container">
       <h1 id="countdown"></h1>
       <h1 id="message"></h1>
       <button id="abort">Abort Mission</button>
 
       <input id="text-input" />
       <!--switchMap -->
-      <input id="input" />
+      <div>
+        <label for="input">Search</label>
+        <input id="input" placeholder="Search for beer" />
+      </div>
+
       <div id="typeAhead-container"></div>
+
+      <div class="radio-btns-container">
+        <p>What is your favorite operator?</p>
+
+        <div class="radio-container">
+          <input
+            type="radio"
+            class="radio-option"
+            name="operator"
+            value="mergeMap"
+          />
+          <label for="mergeMap">mergeMap </label>
+        </div>
+
+        <div class="radio-container">
+          <input
+            type="radio"
+            class="radio-option"
+            name="operator"
+            value="switchMap"
+          />
+          <label for="switchMap">switchMap </label>
+        </div>
+
+        <div class="radio-container">
+          <input
+            type="radio"
+            class="radio-option"
+            name="operator"
+            value="concatMap"
+          />
+          <label for="concatMap">concatMap </label>
+        </div>
+      </div>
+      <button id="login">login</button>
     </div>
+
     <script src="scrollbar.js"></script>
     <script src="index.js"></script>
     <script src="countdown.js"></script>
